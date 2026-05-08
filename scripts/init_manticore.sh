@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 TABLE_DUMP="${TABLE_DUMP:-dumps/fiqa_docs_with_embeddings.sql.tar.gz.part-*}"
+TABLE_DUMP_MEMBER="${TABLE_DUMP_MEMBER:-fiqa_docs_with_embeddings.sql}"
 CHAT_MODEL_SQL="${CHAT_MODEL_SQL:-dumps/create_chat_model.sql}"
 SERVICE_NAME="${MANTICORE_SERVICE:-manticore}"
 
@@ -41,10 +42,10 @@ docker exec "$container_id" sh -c 'exec mysql -e "DROP CHAT MODEL IF EXISTS assi
 echo "Restoring $TABLE_DUMP..."
 case "${table_dump_parts[0]}" in
   *.part-*)
-    cat "${table_dump_parts[@]}" | tar -xOzf - | docker exec -i "$container_id" sh -c 'exec mysql'
+    cat "${table_dump_parts[@]}" | tar -xOzf - "$TABLE_DUMP_MEMBER" | docker exec -i "$container_id" sh -c 'exec mysql'
     ;;
   *.tar.gz|*.tgz)
-    tar -xOzf "${table_dump_parts[0]}" | docker exec -i "$container_id" sh -c 'exec mysql'
+    tar -xOzf "${table_dump_parts[0]}" "$TABLE_DUMP_MEMBER" | docker exec -i "$container_id" sh -c 'exec mysql'
     ;;
   *)
     docker exec -i "$container_id" sh -c 'exec mysql' < "${table_dump_parts[0]}"
